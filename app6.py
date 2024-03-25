@@ -11,52 +11,50 @@ import scipy.signal as signal
 import helpers as hp
 
 
-def passebande(fcH, fcB):
-    print("passebande")
-    """
-    Fonction passe bande
-    
-    :parameter fcH: Fréquence de coupure haute du filtre
-    :parameter fcB: Fréquence de coupure basse du filtre
-    :return:
-    """
-    bas = passebas(fcB)
-    haut = passehaut(fcH)
+def filtre(fc, typefiltre):
+    # Affichage dans le graphique
+    nom = "bandpass"
+    if typefiltre == 'high':
+        nom = "haut"
+    if typefiltre == 'low':
+        nom = "bas"
 
+    # Titre des graphiques
+    titre = f"filtre passe-{nom} {fc} Hz"
 
-
-
-def passehaut(fc):
-    print("passehaut")
-
-    order = 2
-    wn = 2 * np.pi * fc
-
-    b1, a1 = signal.butter(order, wn, 'high', analog=True)
-
-    mag1, ph1, w1, fig, ax = hp.bodeplot(b1, a1, f'filtre passe-haut {fc} Hz')
-    return mag1, ph1, w1, fig, ax
-
-
-def passebas(fc):
-    print("passebas")
-
-    order = 2
+    order = 2   # ordre du filtre
     wn = 2 * np.pi * fc  # frequence de coupure = 700Hz = 2 * np.pi * 700
 
-    # définit un filtre passe bas butterworth =>  b1 numerateur, a1 dénominateur
-    b1, a1 = signal.butter(order, wn, 'low', analog=True)
+    # numérateur, dénominateur
+    b1, a1 = signal.butter(order, wn, typefiltre, analog=True, output='ba')
+    print(f'{titre}: Butterworth Numérateur {b1}, Dénominateur {a1}')
+    print(f'{titre}: Racine butterworth Zéros:{np.roots(b1)}, Pôles:{np.roots(a1)}')
 
-    mag1, ph1, w1, fig, ax = hp.bodeplot(b1, a1, f'filtre passe-bas {fc} Hz')
+    # Zéros, pôles
+    z1, p1, k1 = signal.butter(order, wn, typefiltre, analog=True, output='zpk')
+    hp.pzmap1(z1, p1, titre)
+
+    print(f'{titre}: Gain butterworth {k1}')
+
+    # Lieu de bode
+    mag1, ph1, w1, fig, ax = hp.bodeplot(b1, a1, titre)
+
+    # Délai de groupe
+    delay = - np.diff(ph1) / np.diff(w1)  # calcul
+    hp.grpdel1(w1, delay, titre)  # affichage
 
     return mag1, ph1, w1, fig, ax
 
 
 def main():
     print("Début du programme")
-    # passebas(700)
-    # passehaut(1000)
-    passebande(1000, 5000)
+
+    # Liste des fréquences et leur type de filtre
+    liste = {700: "low", 1000: "high", 5000: "low", 7000: "high"}
+
+    for fc in liste:
+        filtre(fc, liste[fc])  # fréquence de coupure, type de filtre
+
     plt.show()
 
 

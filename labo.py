@@ -69,8 +69,7 @@ def exampleButterworth():
     # définit un filtre passe bas butterworth =>  b1 numerateur, a1 dénominateur
     b1, a1 = signal.butter(order, wn, 'low', analog=True)
     print(f'Butterworth Numérateur {b1}, Dénominateur {a1}')  # affiche les coefficients correspondants au filtre
-    print(
-        f'Racine butterworth Zéros:{np.roots(b1)}, Pôles:{np.roots(a1)}')  # affichage du resultat dans la console texte
+    print(f'Racine butterworth Zéros:{np.roots(b1)}, Pôles:{np.roots(a1)}')  # affichage du resultat dans la console texte
 
     # Réponse en fréquence
     mag1, ph1, w1, fig, ax = hp.bodeplot(b1, a1, 'Butterworth Example')
