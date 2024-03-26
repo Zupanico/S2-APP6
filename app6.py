@@ -26,13 +26,13 @@ def filtre(fc, typefiltre):
     wn = 2 * np.pi * fc  # frequence de coupure = 700Hz = 2 * np.pi * 700
 
     # numérateur, dénominateur
-    b1, a1 = signal.butter(order, wn, typefiltre, analog=True, output='ba')
-    print(f'{titre}: Butterworth Numérateur {b1}, Dénominateur {a1}')
-    print(f'{titre}: Racine butterworth Zéros:{np.roots(b1)}, Pôles:{np.roots(a1)}')
-
     # Zéros, pôles
     z1, p1, k1 = signal.butter(order, wn, typefiltre, analog=True, output='zpk')
     hp.pzmap1(z1, p1, titre)
+
+    b1, a1 = signal.butter(order, wn, typefiltre, analog=True, output='ba')
+    print(f'{titre}: Butterworth Numérateur {b1}, Dénominateur {a1}')
+    print(f'{titre}: Racine butterworth Zéros:{z1}, Pôles:{p1}')
 
     print(f'{titre}: Gain butterworth {k1}')
 
@@ -44,6 +44,7 @@ def filtre(fc, typefiltre):
     hp.grpdel1(w1, delay, titre)  # affichage
 
     return z1, p1, k1
+
 
 def circuit():
 
@@ -74,7 +75,7 @@ def circuit():
 
     # Passe-bas et passe bande en paralèlle
     x1 = 1  # K1
-    x2 = 1  # K2
+    x2 = 0.75  # K2
 
     # x1 en gain négatif pour un déphasage de 180 degrés
     zp1, pp1, kp1 = hp.paratf(z1, p1, -x1 * k1, zs, ps, x2 * ks)
@@ -98,6 +99,16 @@ def circuit():
     tout3, yout3, xout3 = signal.lsim((z4, p4, -k4), u1, t)       # Filtre passe-haut
     yout = [yout1, yout2, yout3, youtp]
     hp.timepltmulti2(t, u1, toutp, yout, f'Égaliseur klow={x1}, khigh={x2}', ['H1', 'H2*H3', 'H4', 'HÉgaliseur'])
+
+    # Lieu de bode du circuit
+    mag1, ph1, w1, fig, ax = hp.bodeplot(bp1, ap1, "circuit corrigé")
+
+    # Délai de groupe
+    delay = - np.diff(ph1) / np.diff(w1)  # calcul
+    hp.grpdel1(w1, delay, "circuit corrigé")  # affichage
+
+    # Poles et zéros
+    hp.pzmap1(zf, pf, "circuit corrigé")
 
 
 def main():
